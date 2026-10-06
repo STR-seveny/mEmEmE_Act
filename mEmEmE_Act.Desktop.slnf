@@ -1,0 +1,11 @@
+﻿{
+  "solution": {
+    "path": "mEmEmE_Act.sln",
+    "projects": [
+      "mEmEmE_Act.Desktop\\mEmEmE_Act.Desktop.csproj",
+      "mEmEmE_Act.Game\\mEmEmE_Act.Game.csproj",
+      "mEmEmE_Act.Game.Tests\\mEmEmE_Act.Game.Tests.csproj",
+      "mEmEmE_Act.Resources\\mEmEmE_Act.Resources.csproj"
+    ]
+  }
+}

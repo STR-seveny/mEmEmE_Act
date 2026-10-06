@@ -1,0 +1,196 @@
+================================================================================
+mEmEmE(Act) —— 第三方组件声明 / Third-Party Notices
+================================================================================
+
+本项目（mEmEmE(Act)）的**源代码**以 MIT 许可发布（见 LICENSE）。
+但本项目依赖、链接或分发了下列第三方组件，它们**各有自己的许可条款**，
+不受本项目 MIT 许可覆盖。
+
+This project's source code is MIT-licensed (see LICENSE), but it depends on,
+links against, or redistributes the third-party components listed below, each
+governed by its own licence terms. The MIT licence does NOT apply to them.
+
+发布二进制版本（Release）前请务必通读本文件，尤其是标注 ⚠ 的两项。
+
+⚠⚠⚠  商业用途特别注意 / IMPORTANT FOR COMMERCIAL USE  ⚠⚠⚠
+--------------------------------------------------------------------------------
+下面的 Six Labors 与 BASS 两项，**在商业用途下都需要另行购买授权**。
+如果你打算通过本游戏获利（销售、广告、订阅等），必须自行取得相应授权。
+本项目的 MIT 许可**无法**代你授予这些权利。
+
+Two components below (Six Labors and BASS) require a **separate paid licence
+for commercial use**. If you intend to make money from this game (sales,
+ads, subscriptions, ...), you must obtain those licences yourself. This
+project's MIT licence cannot grant them to you.
+
+================================================================================
+1. ppy.osu.Framework  2025.1021.0
+================================================================================
+用途 / Purpose: 游戏引擎（渲染、输入、音频、资源管理）/ Game engine
+许可 / Licence:   MIT License
+版权 / Copyright: © ppy Pty Ltd
+来源 / Source:    https://github.com/ppy/osu-framework
+许可全文 / Text:  https://github.com/ppy/osu-framework/blob/master/LICENCE
+
+--------------------------------------------------------------------------------
+1a. BASS 音频库（由 osu!framework 引入）/ BASS audio library (via osu!framework)
+--------------------------------------------------------------------------------
+涉及文件 / Files:   bass.dll, bass_fx.dll, bassmix.dll, basswasapi.dll
+                    ppy.ManagedBass*.dll（.NET 包装 / managed wrapper）
+版权 / Copyright:   © un4seen developments
+来源 / Source:      https://www.un4seen.com/bass.html
+
+⚠ 许可条款 / Licence terms（原文摘录 / quoted from the official site）:
+
+    "BASS is free for non-commercial use. If you are a non-commercial entity
+     (eg. an individual) and you are not making any money from your product
+     (through sales, advertising, etc) then you can use BASS in it for free.
+     Otherwise, one of the following licences will be required."
+
+    · Shareware licence:              €125
+    · Single Commercial licence:      €950  (iOS 或 Android: €475)
+    · Unlimited Commercial licence:   €3450
+
+    授权按**平台**计费（每个额外平台减 40%）。
+    Licences are on a **per-platform** basis (40% off each additional platform).
+
+    其他限制 / Other restrictions:
+      · "Reselling/sublicensing is not permitted."
+      · 产品必须是**终端用户产品**，不能是被其他产品使用的组件。
+        "Your products must be end-user products, eg. not components used by
+         other products."
+
+说明 / Note: BASS 的许可与 osu!framework 的 MIT 是**两回事**——MIT 只覆盖
+osu!framework 自己的代码，不覆盖它打包的 BASS。
+
+================================================================================
+2. SixLabors.ImageSharp.Drawing  3.0.0
+================================================================================
+用途 / Purpose: 运行时渲染 bug 音符的 REV / SPT 字样纹理
+                  Rasterising the REV / SPT label textures at runtime
+版权 / Copyright: © Six Labors
+来源 / Source:    https://github.com/SixLabors/ImageSharp.Drawing
+授权页 / Pricing: https://sixlabors.com/pricing/
+
+⚠ 双许可 / Split Licence:
+
+    · 开源或非商业用途 / Open-source or non-commercial use:
+        Apache License 2.0
+        https://www.apache.org/licenses/LICENSE-2.0
+
+    · 商业用途 / Commercial use:
+        需要购买 Six Labors 商业授权 / a paid commercial licence is required
+
+说明 / Note:
+    本项目通过 **Six Labors Community License** 使用该组件。授权文件
+    `sixlabors.lic` 是**私人凭证（内含 License Key），刻意不包含在本仓库中**，
+    并已在 .gitignore 中排除。
+
+    This project uses the component under a **Six Labors Community License**.
+    The `sixlabors.lic` file is a **private credential containing a licence
+    key** and is deliberately NOT included in this repository (excluded via
+    .gitignore).
+
+    构建说明 / Build note:
+    ImageSharp.Drawing 的构建目标会强制校验许可证，**没有该文件则无法编译**。
+    详见 README 的「编译运行」章节。
+    Its build targets enforce licence validation, so **the project will not
+    compile without it**. See the README for details.
+
+--------------------------------------------------------------------------------
+2a. SixLabors.ImageSharp  3.0.0（依赖 / dependency）
+--------------------------------------------------------------------------------
+许可 / Licence: 同上（双许可）/ Same split licence as above.
+
+2b. SixLabors.Fonts（依赖 / dependency）
+--------------------------------------------------------------------------------
+许可 / Licence: 同上（双许可）/ Same split licence as above.
+
+2c. SixLabors.PolygonClipper（依赖 / dependency）
+--------------------------------------------------------------------------------
+许可 / Licence: 同上（双许可）/ Same split licence as above.
+
+================================================================================
+3. FontStashSharp  1.6.1  ·  FontStashSharp.Rasterizers.StbTrueTypeSharp  1.2.9
+================================================================================
+用途 / Purpose: 字体光栅化 / Font rasterisation
+许可 / Licence: MIT License
+来源 / Source:  https://github.com/FontStashSharp/FontStashSharp
+
+--------------------------------------------------------------------------------
+3a. StbTrueTypeSharp（依赖 / dependency）
+--------------------------------------------------------------------------------
+许可 / Licence: Public Domain / MIT（stb_truetype 的 .NET 移植）
+来源 / Source:  https://github.com/StbSharp/StbTrueTypeSharp
+
+================================================================================
+4. NUnit  ·  NUnit3TestAdapter  ·  Microsoft.NET.Test.Sdk
+================================================================================
+用途 / Purpose: 单元测试（仅 mEmEmE_Act.Game.Tests 项目，不随游戏发布）
+                  Testing only (test project; not shipped with the game)
+许可 / Licence: MIT License
+
+================================================================================
+5. Veldrid / SPIRV-Cross（由 osu!framework 引入）
+    Veldrid / SPIRV-Cross (via osu!framework)
+================================================================================
+用途 / Purpose: 图形后端与着色器编译 / Graphics backend and shader compilation
+涉及文件 / Files: veldrid-spirv*, libveldrid-spirv.*
+许可 / Licence:
+    · Veldrid — MIT License — https://github.com/veldrid/veldrid
+    · SPIRV-Cross — Apache License 2.0 / MIT
+      https://github.com/KhronosGroup/SPIRV-Cross
+
+================================================================================
+6. .NET 运行时（自包含发布时）/ .NET Runtime (when self-contained)
+================================================================================
+用途 / Purpose: 运行时（`--self-contained` 发布时随包分发）
+许可 / Licence: MIT License
+版权 / Copyright: © .NET Foundation and Contributors
+来源 / Source:    https://github.com/dotnet/runtime
+
+================================================================================
+7. 字体 / Fonts
+================================================================================
+Resources/Fonts/SourceHanSansSC-Regular.otf
+    思源黑体 / Source Han Sans
+    许可 / Licence: SIL Open Font License 1.1
+    版权 / Copyright: © Adobe
+    来源 / Source: https://github.com/adobe-fonts/source-han-sans
+    许可全文 / Text: https://github.com/adobe-fonts/source-han-sans/blob/master/LICENSE.txt
+
+================================================================================
+8. 音频与美术素材 / Audio and Art Assets
+================================================================================
+Resources/Audio/   —— 音乐 / Music        ❌ 不在仓库中 / NOT in this repository
+Resources/Sound/   —— 音效 / Sound effects ✅ 在仓库中 / included
+Resources/Effects/ —— 命中特效贴图 / Hit-effect sprites ✅ 在仓库中 / included
+
+⚠ 音乐 / Music
+    音乐（Resources/Audio/1_1_1.mp3）**刻意未包含在本仓库中**：
+    它只取得了"使用授权"，并不包含公开再分发的权利，随仓库发布即构成再分发。
+    详见 Resources/Audio/README.md。
+
+    The background music is **deliberately excluded from this repository**:
+    the licence obtained covers use only, not public redistribution, and
+    shipping it in the repo would constitute redistribution. See
+    Resources/Audio/README.md.
+
+其余音效与图片素材的版权归其各自作者所有，**不适用本项目的 MIT 许可**，
+也**不在本文件的授权范围内**。再分发前请确认你拥有相应权利。
+
+The remaining sound effects and image assets remain the property of their
+respective authors. They are NOT covered by this project's MIT licence.
+Verify you hold the necessary rights before redistributing them.
+
+================================================================================
+如有疑问 / Questions
+================================================================================
+本文件仅为便于查阅的整理，**不构成法律意见**。各项条款以官方原文为准
+（上方已给出链接）。商业发布前建议咨询专业人士。
+
+This file is a convenience summary and does **not** constitute legal advice.
+The official texts (linked above) prevail. Consult a professional before
+commercial release.
+
+最后更新 / Last updated: 2026 —— beta0.0.1

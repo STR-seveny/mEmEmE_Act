@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "mEmEmE_Act.sln",
+    "projects": [
+      "mEmEmE_Act.Game\\mEmEmE_Act.Game.csproj",
+      "mEmEmE_Act.Resources\\mEmEmE_Act.Resources.csproj",
+      "mEmEmE_Act.iOS\\mEmEmE_Act.iOS.csproj"
+    ]
+  }
+}
