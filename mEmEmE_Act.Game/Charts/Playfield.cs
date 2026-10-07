@@ -127,17 +127,7 @@ namespace mEmEmE_Act.Game
 
         public void LoadChart(List<ChartEvent> chartEvents, string audioPath = null)
         {
-            events = chartEvents;
-            nextEventIndex = 0;
-            activeObjects.Clear();
-            notesToJudge.Clear();
-            Variables.Clear();
-            RevActive = false;
-            SptActive = false;
-            CurrentSpeedUnits = MIN_SPEED_UNIT;
-            musicStarted = false;
-            playTriggered = false;
-            chartLoadTime = Clock.CurrentTime;
+            StoreChart(chartEvents);
 
             track?.Dispose();
             track = null;
@@ -150,6 +140,48 @@ namespace mEmEmE_Act.Game
                 var trackStore = audioManager.GetTrackStore(resourceStore);
                 track = trackStore.Get(audioPath);
             }
+        }
+
+        /// <summary>
+        /// Loads a .me4 package: chart, and the track when the package carries one.
+        /// Unlike <see cref="LoadChart"/> the files come from the package's own extracted folder,
+        /// so their full paths (not game-relative paths) are used.
+        /// </summary>
+        public void LoadPackage(Me4Package package)
+        {
+            if (package == null)
+                return;
+
+            StoreChart(new ChartParser().Parse(package.ChartPath));
+
+            track?.Dispose();
+            track = null;
+
+            if (string.IsNullOrEmpty(package.AudioPath) || !System.IO.File.Exists(package.AudioPath))
+                return;
+
+            var audioDir = System.IO.Path.GetDirectoryName(package.AudioPath);
+            var audioFile = System.IO.Path.GetFileName(package.AudioPath);
+
+            var storage = new osu.Framework.Platform.NativeStorage(audioDir);
+            var resourceStore = new osu.Framework.IO.Stores.StorageBackedResourceStore(storage);
+            track = audioManager.GetTrackStore(resourceStore).Get(audioFile);
+        }
+
+        /// <summary>Resets all per-chart state. Shared by both load paths.</summary>
+        private void StoreChart(List<ChartEvent> chartEvents)
+        {
+            events = chartEvents ?? new List<ChartEvent>();
+            nextEventIndex = 0;
+            activeObjects.Clear();
+            notesToJudge.Clear();
+            Variables.Clear();
+            RevActive = false;
+            SptActive = false;
+            CurrentSpeedUnits = MIN_SPEED_UNIT;
+            musicStarted = false;
+            playTriggered = false;
+            chartLoadTime = Clock.CurrentTime;
         }
 
         public void UpdateMouse(Vector2 position) => MousePosition = position;
@@ -184,25 +216,11 @@ namespace mEmEmE_Act.Game
             // Note.Update reads this to decide where to draw itself.
             JudgementY = DrawSize.Y - Receptor.ZoneTopFromBottom;
 
+            // Until the player clicks to begin, nothing runs at all: the chart simply waits.
+            // (The play() command used to auto-fire here once the chart had been loaded long
+            // enough, which meant music started on its own before the prepare overlay was dismissed.)
             if (!playTriggered)
-            {
-                // Before play fires: look only for the first PlayEvent, ignore everything else
-                double gameTime = Clock.CurrentTime - chartLoadTime;
-
-                for (int i = 0; i < events.Count; i++)
-                {
-                    if (events[i] is PlayEvent playEvent)
-                    {
-                        if (playEvent.Time <= gameTime)
-                        {
-                            playEvent.Execute(this);
-                            events.RemoveAt(i);
-                        }
-                        break;
-                    }
-                }
                 return;
-            }
 
             // After play fires: the audio clock drives all events
             double currentTime = GetChartTime();
@@ -711,6 +729,22 @@ namespace mEmEmE_Act.Game
                 track.Seek(start);
                 track.Start();
             }
+        }
+
+        /// <summary>
+        /// Lets the chart begin: events start firing from this moment.
+        ///
+        /// Called when the prepare overlay is dismissed. The track itself is still started by the
+        /// chart's own play() command, so the wait between "player clicks" and "music starts" stays
+        /// exactly as the chart author wrote it.
+        /// </summary>
+        public void Begin()
+        {
+            if (playTriggered)
+                return;
+
+            playTriggered = true;
+            chartLoadTime = Clock.CurrentTime;
         }
 
         public double CurrentChartTime => GetChartTime();

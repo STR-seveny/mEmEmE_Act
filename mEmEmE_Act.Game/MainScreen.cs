@@ -4,7 +4,9 @@ using mEmEmE_Act.Game.Charts;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
@@ -26,8 +28,30 @@ namespace mEmEmE_Act.Game
         /// <summary>The mouse position in screen space. IRequireHighFrequencyMousePosition keeps it refreshed.</summary>
         private Vector2 mousePosition;
 
+        /// <summary>Set when a .me4 package supplied cover art, so the prepare overlay can show it.</summary>
+        private Texture coverArt;
+
+        /// <summary>Create a texture from a file on disk, or null when it cannot be read.</summary>
+        private static Texture LoadPng(string path, IRenderer renderer)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path) || renderer == null)
+                return null;
+
+            try
+            {
+                var storage = new osu.Framework.Platform.NativeStorage(Path.GetDirectoryName(path));
+                var loader = new TextureLoaderStore(
+                    new osu.Framework.IO.Stores.StorageBackedResourceStore(storage));
+                return new TextureStore(renderer, loader).Get(Path.GetFileName(path));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(IRenderer renderer)
         {
             AddInternal(new Box
             {
@@ -59,21 +83,62 @@ namespace mEmEmE_Act.Game
                 Origin = Anchor.BottomLeft,
                 Colour = Colour4.FromHex("#ff5858"),
             });
+
+            var chartsDir = Path.Combine(
+                System.AppDomain.CurrentDomain.BaseDirectory,
+                "Resources", "Charts"
+            );
+
+            // Prefer a .me4 package: chart + music + art + metadata in one file.
+            // Check a Songs folder next to the executable first, then the bundled Charts folder.
+            var me4 = FindFirstMe4(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Songs"))
+                      ?? FindFirstMe4(chartsDir);
+
+            string title = null, artist = null, charter = null, illustrator = null;
+
+            if (me4 != null)
+            {
+                var package = Me4Package.Load(me4);
+
+                if (package != null)
+                {
+                    playfield.LoadPackage(package);
+                    coverArt = LoadPng(package.ArtPath, renderer);
+
+                    title = package.Title;
+                    artist = package.Artist;
+                    charter = package.Charter;
+                    illustrator = package.Illustrator;
+                }
+            }
+
+            // Fall back to the loose .me3 + Resources\Audio layout.
+            if (title == null)
+            {
+                var chartPath = Path.Combine(chartsDir, "1_1_1.me3");
+
+                if (File.Exists(chartPath))
+                {
+                    var parser = new ChartParser();
+                    playfield.LoadChart(parser.Parse(chartPath), "Audio/1_1_1.mp3");
+                }
+            }
+
+            // The prepare overlay covers the running game and starts the chart on click.
+            AddInternal(new PrepareOverlay(title ?? "", artist ?? "", charter ?? "", illustrator ?? "", coverArt)
+            {
+                StartRequested = playfield.Begin,
+            });
         }
 
-        protected override void LoadComplete()
+        /// <summary>First .me4 in a folder, or null when the folder is missing or holds none.</summary>
+        private static string FindFirstMe4(string folder)
         {
-            base.LoadComplete();
+            if (!Directory.Exists(folder))
+                return null;
 
-            var chartPath = Path.Combine(
-                System.AppDomain.CurrentDomain.BaseDirectory,
-                "Resources", "Charts", "1_1_1.me3"
-            );
-            if (File.Exists(chartPath))
-            {
-                var parser = new ChartParser();
-                playfield.LoadChart(parser.Parse(chartPath), "Audio/1_1_1.mp3");
-            }
+            var found = Directory.GetFiles(folder, "*.me4");
+            return found.Length > 0 ? found[0] : null;
         }
 
         protected override void Update()
