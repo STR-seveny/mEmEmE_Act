@@ -211,14 +211,30 @@ error : No Six Labors license found. Set $(SixLaborsLicenseKey),
 
 > 项目自身的**开源发布不包含任何授权凭证**；`sixlabors.lic` 已在 `.gitignore` 中排除。
 
-### ⚠️ 音频不包含在仓库中 / Audio is not shipped
+### ⚠️ 关卡与音频不包含在仓库中 / Levels and audio are not shipped
 
-**音乐文件 `Resources/Audio/1_1_1.mp3` 没有随仓库发布**——它只有"使用授权"，不等于可以公开再分发。
+**关卡和音乐都没有随仓库发布**——它们属于内容资产，且音乐只有"使用授权"、不可公开再分发。
 
-克隆后请自备音频放到 `mEmEmE_Act.Game/Resources/Audio/`，命名为 `1_1_1.mp3`（详见该目录下的 `README.md`）。
-**没有该文件游戏仍能启动**，只是没有音乐。
+克隆后请自备关卡包放进 `mEmEmE_Act.Game/Resources/Levels/`：
 
-*The background music is **not shipped in this repository** — its licence permits use, not public redistribution. Supply your own `1_1_1.mp3` in `mEmEmE_Act.Game/Resources/Audio/`. The game still launches without it, just silently.*
+*Neither levels nor music are shipped in this repository — they are content assets, and the music's licence permits use only.*
+
+*Supply your own level package in `mEmEmE_Act.Game/Resources/Levels/`:*
+
+```
+YourLevel.me4      ← 一个文件装下 谱面 + 音频 + 曲绘 + 元数据
+```
+
+`.me4` 是**改了后缀名的 zip 压缩包**，格式说明见 `Resources/Levels/README.md`。
+
+*A `.me4` is a **zip archive with a renamed extension**; see `Resources/Levels/README.md` for the format.*
+
+**没有关卡时游戏会启动，但没有音符**（判定区与接收器仍在）。
+
+*Without a level the game still launches, but no notes appear.*
+
+> 旧格式仍然可用：把 `1_1_1.me3` 放 `Resources/Charts/`、`1_1_1.mp3` 放 `Resources/Audio/`。
+> *The legacy layout still works: `1_1_1.me3` in `Resources/Charts/` plus `1_1_1.mp3` in `Resources/Audio/`.*
 
 ### 编译 / Build
 

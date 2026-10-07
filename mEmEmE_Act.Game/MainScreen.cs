@@ -84,15 +84,13 @@ namespace mEmEmE_Act.Game
                 Colour = Colour4.FromHex("#ff5858"),
             });
 
-            var chartsDir = Path.Combine(
+            // Levels live in Resources\Levels as .me4 packages (chart + music + art + metadata in one file).
+            var levelsDir = Path.Combine(
                 System.AppDomain.CurrentDomain.BaseDirectory,
-                "Resources", "Charts"
+                "Resources", "Levels"
             );
 
-            // Prefer a .me4 package: chart + music + art + metadata in one file.
-            // Check a Songs folder next to the executable first, then the bundled Charts folder.
-            var me4 = FindFirstMe4(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Songs"))
-                      ?? FindFirstMe4(chartsDir);
+            var me4 = FindFirstMe4(levelsDir);
 
             string title = null, artist = null, charter = null, illustrator = null;
 
@@ -115,7 +113,10 @@ namespace mEmEmE_Act.Game
             // Fall back to the loose .me3 + Resources\Audio layout.
             if (title == null)
             {
-                var chartPath = Path.Combine(chartsDir, "1_1_1.me3");
+                var chartPath = Path.Combine(
+                    System.AppDomain.CurrentDomain.BaseDirectory,
+                    "Resources", "Charts", "1_1_1.me3"
+                );
 
                 if (File.Exists(chartPath))
                 {
