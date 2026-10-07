@@ -31,6 +31,9 @@ namespace mEmEmE_Act.Game
 
         public float FontSize { get; set; } = 24;
 
+        /// <summary>Transparent margin left around the rendered text, in pixels.</summary>
+        private const int LabelPadding = 5;
+
         public DynamicText()
         {
             Anchor = Anchor.BottomRight;
@@ -94,22 +97,29 @@ namespace mEmEmE_Act.Game
                 return;
             }
 
-            var options = new RichTextOptions(font)
-            {
-                Origin = new PointF(5, 5)
-            };
-            var metrics = TextMeasurer.Measure(text, options);
-            var bounds = metrics.Bounds;
+            // Measure from (0,0) to get the glyph's true bounds relative to the draw origin.
+            // This matters: a glyph's left/top bounds are not 0, so measuring and drawing at the same
+            // origin leaves the text offset inside the texture — and for large sizes the bottom of a
+            // glyph overflows the image and gets clipped (a capital E loses its lower bar and reads
+            // as an F).
+            var measureOptions = new RichTextOptions(font) { Origin = PointF.Empty };
+            var bounds = TextMeasurer.Measure(text, measureOptions).Bounds;
 
-            int width = (int)Math.Ceiling(bounds.Width) + 10;
-            int height = (int)Math.Ceiling(bounds.Height) + 10;
+            int width = (int)Math.Ceiling(bounds.Width) + LabelPadding * 2;
+            int height = (int)Math.Ceiling(bounds.Height) + LabelPadding * 2;
+
+            // Shift the draw origin so the glyph lands exactly on (LabelPadding, LabelPadding).
+            var drawOptions = new RichTextOptions(font)
+            {
+                Origin = new PointF(LabelPadding - bounds.Left, LabelPadding - bounds.Top)
+            };
 
             var image = new Image<Rgba32>(width, height);
             image.Mutate(ctx =>
             {
                 ctx.Paint(canvas =>
                 {
-                    canvas.DrawText(options, text, Brushes.Solid(Color.White), pen: null);
+                    canvas.DrawText(drawOptions, text, Brushes.Solid(Color.White), pen: null);
                 });
             });
 

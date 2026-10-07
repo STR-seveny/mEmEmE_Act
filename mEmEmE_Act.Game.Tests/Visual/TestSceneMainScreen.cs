@@ -12,7 +12,7 @@ namespace mEmEmE_Act.Game.Tests.Visual
 
         public TestSceneMainScreen()
         {
-            Add(new ScreenStack(new MainScreen()) { RelativeSizeAxes = Axes.Both });
+            Add(new ScreenStack(new MainMenuScreen()) { RelativeSizeAxes = Axes.Both });
         }
     }
 }

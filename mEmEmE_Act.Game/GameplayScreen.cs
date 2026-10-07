@@ -15,8 +15,11 @@ using osuTK.Input;
 
 namespace mEmEmE_Act.Game
 {
-    public partial class MainScreen : Screen, IRequireHighFrequencyMousePosition
+    public partial class GameplayScreen : Screen, IRequireHighFrequencyMousePosition
     {
+        /// <summary>Which level to play. Null means "nothing to play", which yields an empty playfield.</summary>
+        private readonly LevelInfo level;
+
         private Playfield playfield;
 
         /// <summary>All receptors: index 0 is the main body (follows the mouse), index 1 is SPT's mirror clone.</summary>
@@ -30,6 +33,11 @@ namespace mEmEmE_Act.Game
 
         /// <summary>Set when a .me4 package supplied cover art, so the prepare overlay can show it.</summary>
         private Texture coverArt;
+
+        public GameplayScreen(LevelInfo level)
+        {
+            this.level = level;
+        }
 
         /// <summary>Create a texture from a file on disk, or null when it cannot be read.</summary>
         private static Texture LoadPng(string path, IRenderer renderer)
@@ -85,34 +93,21 @@ namespace mEmEmE_Act.Game
             });
 
             // Levels live in Resources\Levels as .me4 packages (chart + music + art + metadata in one file).
-            var levelsDir = Path.Combine(
-                System.AppDomain.CurrentDomain.BaseDirectory,
-                "Resources", "Levels"
-            );
-
-            var me4 = FindFirstMe4(levelsDir);
-
             string title = null, artist = null, charter = null, illustrator = null;
 
-            if (me4 != null)
+            if (level?.Package != null)
             {
-                var package = Me4Package.Load(me4);
+                playfield.LoadPackage(level.Package);
+                coverArt = LoadPng(level.ArtPath, renderer);
 
-                if (package != null)
-                {
-                    playfield.LoadPackage(package);
-                    coverArt = LoadPng(package.ArtPath, renderer);
-
-                    title = package.Title;
-                    artist = package.Artist;
-                    charter = package.Charter;
-                    illustrator = package.Illustrator;
-                }
+                title = level.Title;
+                artist = level.Artist;
+                charter = level.Charter;
+                illustrator = level.Illustrator;
             }
-
-            // Fall back to the loose .me3 + Resources\Audio layout.
-            if (title == null)
+            else
             {
+                // Nothing to play: fall back to the loose .me3 + Resources\Audio layout.
                 var chartPath = Path.Combine(
                     System.AppDomain.CurrentDomain.BaseDirectory,
                     "Resources", "Charts", "1_1_1.me3"
@@ -130,16 +125,6 @@ namespace mEmEmE_Act.Game
             {
                 StartRequested = playfield.Begin,
             });
-        }
-
-        /// <summary>First .me4 in a folder, or null when the folder is missing or holds none.</summary>
-        private static string FindFirstMe4(string folder)
-        {
-            if (!Directory.Exists(folder))
-                return null;
-
-            var found = Directory.GetFiles(folder, "*.me4");
-            return found.Length > 0 ? found[0] : null;
         }
 
         protected override void Update()
@@ -184,9 +169,20 @@ namespace mEmEmE_Act.Game
         /// <summary>
         /// Z / X down = one tE click (use the current logical mouse position as the click position).
         /// System key repeat is ignored so that holding the key down is not taken as repeated clicking.
+        /// ESC leaves the level and goes back to the menu.
         /// </summary>
         protected override bool OnKeyDown(KeyDownEvent e)
         {
+            if (e.Key == Key.Escape)
+            {
+                // Ignore auto-repeat: holding ESC must not fire the exit over and over.
+                // Exit is an extension method on IScreen, so it needs the explicit receiver.
+                if (!e.Repeat)
+                    this.Exit();
+
+                return true;
+            }
+
             if (e.Key != Key.Z && e.Key != Key.X)
                 return true;
 
@@ -194,6 +190,17 @@ namespace mEmEmE_Act.Game
                 playfield.RegisterClick(logicalMouse);
 
             return true;
+        }
+
+        /// <summary>
+        /// Leaving the screen — by ESC or by the chart ending — stops the chart audio here rather than
+        /// in the ESC handler, so every exit path is covered.
+        /// </summary>
+        public override bool OnExiting(ScreenExitEvent e)
+        {
+            playfield?.StopMusic();
+
+            return base.OnExiting(e);
         }
 
         /// <summary>

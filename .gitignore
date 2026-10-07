@@ -35,6 +35,13 @@ _old_git_backup/
 **/Resources/Audio/*.wav
 **/Resources/Audio/*.ogg
 
+# Sound 目录同理：主菜单曲 menu.mp3 有 6 MB，不进仓库。
+# 注意：打击音效 hit.mp3 是 Scratch 无版权音效库的混音，本身没有授权顾虑；而且它在这条规则
+# 之前就已经被跟踪了，ignore 并不会让 git 停止跟踪已跟踪文件。以后要新增音效，git add -f 即可。
+**/Resources/Sound/*.mp3
+**/Resources/Sound/*.wav
+**/Resources/Sound/*.ogg
+
 # ---------- 谱面（内容资产，不进仓库）----------
 # 谱面是关卡内容，不随仓库发布（同音频）。本地保留即可正常游玩。
 # 注意路径相对仓库根目录，谱面在子项目里，所以用 ** 匹配任意层级。

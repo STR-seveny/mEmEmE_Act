@@ -749,6 +749,16 @@ namespace mEmEmE_Act.Game
 
         public double CurrentChartTime => GetChartTime();
 
+        /// <summary>
+        /// Silences the chart audio. Playfield does not own the screen's lifetime, so leaving the game
+        /// screen has to take the music down explicitly — otherwise the chart keeps playing over the
+        /// menu it just returned to.
+        /// </summary>
+        public void StopMusic()
+        {
+            track?.Stop();
+        }
+
 
 
         public void PlayEffect(string type, string sizeParam) { /* TODO */ }

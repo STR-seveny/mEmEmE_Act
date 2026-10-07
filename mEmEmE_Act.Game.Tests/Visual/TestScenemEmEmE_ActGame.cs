@@ -12,7 +12,7 @@ namespace mEmEmE_Act.Game.Tests.Visual
         [BackgroundDependencyLoader]
         private void load()
         {
-            AddGame(new mEmEmE_ActGame_tmp());
+            AddGame(new mEmEmE_ActGame());
         }
     }
 }

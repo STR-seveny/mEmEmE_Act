@@ -33,7 +33,7 @@ namespace mEmEmE_Act.Game
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            screenStack.Push(new MainScreen());
+            screenStack.Push(new MainMenuScreen());
         }
     }
 }

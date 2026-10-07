@@ -26,11 +26,22 @@
 
     Done with a target that filters the item list rather than <None Update="...*.me4">, because
     an include of *.me4 that matches nothing would fail the build.
+
+    The game scans the OUTPUT folder, and copying alone never removes anything: a level deleted
+    from the source used to survive in the output forever and keep showing up in the menu with no
+    way to get rid of it short of deleting the file by hand. So the stale copies are deleted too —
+    the output already holds the source folder's contents and nothing else.
   -->
   <Target Name="CopyLevels" AfterTargets="Build">
     <ItemGroup>
       <LevelFiles Include="$(MSBuildProjectDirectory)\..\mEmEmE_Act.Game\Resources\Levels\*.me4" />
+
+      <!-- .me4 in the output whose source is gone. -->
+      <StaleLevelFiles Include="$(OutDir)Resources\Levels\*.me4"
+                       Exclude="@(LevelFiles->'$(OutDir)Resources\Levels\%(Filename)%(Extension)')" />
     </ItemGroup>
+
+    <Delete Files="@(StaleLevelFiles)" Condition="'@(StaleLevelFiles)' != ''" />
 
     <Copy SourceFiles="@(LevelFiles)"
           DestinationFolder="$(OutDir)Resources\Levels"
@@ -40,5 +51,9 @@
     <Message Importance="normal"
              Text="CopyLevels: @(LevelFiles->'%(Filename)%(Extension)', ', ')"
              Condition="'@(LevelFiles)' != ''" />
+
+    <Message Importance="normal"
+             Text="CopyLevels: removed @(StaleLevelFiles->'%(Filename)%(Extension)', ', ')"
+             Condition="'@(StaleLevelFiles)' != ''" />
   </Target>
 </Project>
