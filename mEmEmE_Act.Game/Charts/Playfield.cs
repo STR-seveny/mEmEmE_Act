@@ -118,11 +118,10 @@ namespace mEmEmE_Act.Game
         {
             base.LoadComplete();
 
-            // Hit sound: Resources/Sound/hit.mp3 (shared by Good and Bad)
-            var soundStorage = new osu.Framework.Platform.NativeStorage(
-                System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Resources", "Sound"));
-            var sampleStore = audioManager.GetSampleStore(new osu.Framework.IO.Stores.StorageBackedResourceStore(soundStorage));
-            hitSample = sampleStore.Get("hit.mp3");
+            // Hit sound: an embedded asset (Sound/hit.mp3), shared by Good and Bad. A Resources folder
+            // on disk takes over when one is present; on Android there is none, hence the embedding.
+            var sampleStore = audioManager.GetSampleStore(GameAssets.CreateResourceStore());
+            hitSample = sampleStore.Get("Sound/hit.mp3");
         }
 
         public void LoadChart(List<ChartEvent> chartEvents, string audioPath = null)
@@ -133,13 +132,7 @@ namespace mEmEmE_Act.Game
             track = null;
 
             if (!string.IsNullOrEmpty(audioPath))
-            {
-                var storage = new osu.Framework.Platform.NativeStorage(
-                    System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Resources"));
-                var resourceStore = new osu.Framework.IO.Stores.StorageBackedResourceStore(storage);
-                var trackStore = audioManager.GetTrackStore(resourceStore);
-                track = trackStore.Get(audioPath);
-            }
+                track = audioManager.GetTrackStore(GameAssets.CreateResourceStore()).Get(audioPath);
         }
 
         /// <summary>

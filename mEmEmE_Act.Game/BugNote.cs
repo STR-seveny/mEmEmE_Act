@@ -134,15 +134,14 @@ namespace mEmEmE_Act.Game
                 {
                     if (labelFont == null)
                     {
-                        var fontPath = Path.Combine(
-                            AppDomain.CurrentDomain.BaseDirectory,
-                            "Resources", "Fonts", "SourceHanSansSC-Regular.otf");
+                        // Embedded asset: there is no Resources folder to read from on Android.
+                        var fontStream = GameAssets.GetStream("Fonts/SourceHanSansSC-Regular.otf");
 
-                        if (!File.Exists(fontPath))
+                        if (fontStream == null)
                             return null;
 
                         var collection = new FontCollection();
-                        var family = collection.Add(fontPath);
+                        var family = collection.Add(fontStream);
                         labelFont = family.CreateFont(LabelFontSize);
                     }
                 }

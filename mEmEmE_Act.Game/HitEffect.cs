@@ -153,16 +153,9 @@ namespace mEmEmE_Act.Game
         [BackgroundDependencyLoader]
         private void load(IRenderer renderer)
         {
-            // The sprites are loose files in the bin output directory (Resources\Effects\*.png),
-            // so they must be read from disk via NativeStorage — the "embedded game resources"
-            // route cannot find them. TextureLoaderStore decodes the png bytes into upload data.
-            var storage = new osu.Framework.Platform.NativeStorage(
-                System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Resources"));
-
-            var loader = new TextureLoaderStore(
-                new osu.Framework.IO.Stores.StorageBackedResourceStore(storage));
-
-            var store = new TextureStore(renderer, loader);
+            // The effects are embedded assets (Effects\*.png); GameAssets falls back to the loose files
+            // in the output directory when they are there, which is also how they used to be read.
+            var store = GameAssets.CreateTextureStore(renderer);
 
             var name = perfect ? "perfect" : "slow";
 

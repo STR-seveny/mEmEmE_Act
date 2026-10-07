@@ -66,11 +66,8 @@ namespace mEmEmE_Act.Game
         {
             // The menu track is optional: without it the bars simply rest at MinHeight, so a
             // fresh clone with no audio still shows a (static) menu rather than breaking.
-            var storage = new osu.Framework.Platform.NativeStorage(
-                System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Resources", "Sound"));
-
-            menuTrack = audio.GetTrackStore(
-                new osu.Framework.IO.Stores.StorageBackedResourceStore(storage)).Get("menu.mp3");
+            // GameAssets resolves it from the embedded set (falling back to Resources on disk).
+            menuTrack = audio.GetTrackStore(GameAssets.CreateResourceStore()).Get("Sound/menu.mp3");
 
             var container = new Container
             {

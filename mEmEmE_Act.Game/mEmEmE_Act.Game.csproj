@@ -12,6 +12,25 @@
        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
      </Content>
    </ItemGroup>
+  <!--
+    Runtime assets are embedded INTO this assembly as well as copied next to the executable.
+
+    Copied alone they only exist on desktop: on Android the build output is inside the app package, so
+    every path built from AppDomain.BaseDirectory resolves to nothing and the game dies on the missing
+    font. Embedded, the same bytes are reachable on every platform through GetManifestResourceStream,
+    which is what GameAssets uses. See GameAssets.cs.
+
+    Globs rather than literal names on purpose: menu.mp3 and the levels are not in the repository, and
+    a literal Include of a file that is not there fails the build.
+  -->
+  <ItemGroup Label="Embedded runtime assets">
+    <EmbeddedResource Include="Resources\Fonts\*.otf" />
+    <EmbeddedResource Include="Resources\Sound\*.mp3" />
+    <EmbeddedResource Include="Resources\Textures\*.png" />
+    <EmbeddedResource Include="Resources\Effects\*.png" />
+    <EmbeddedResource Include="Resources\Levels\*.me4" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\mEmEmE_Act.Resources\mEmEmE_Act.Resources.csproj" />
   </ItemGroup>

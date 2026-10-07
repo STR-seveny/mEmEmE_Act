@@ -176,8 +176,7 @@ namespace mEmEmE_Act.Game
                 Y = PanelClosedY,
             };
 
-            var texture = LoadTexture(Path.Combine(
-                System.AppDomain.CurrentDomain.BaseDirectory, "Resources", "Textures", "START.png"), renderer);
+            var texture = LoadAssetTexture("Textures/START.png", renderer);
 
             if (texture != null)
             {
@@ -330,15 +329,12 @@ namespace mEmEmE_Act.Game
         /// <summary>
         /// The logo.
         ///
-        /// Placeholder for now: the real artwork is a custom-drawn wordmark, so it will be swapped for
-        /// an image once exported. Drop it at Resources/Textures/logo.png and it is used automatically.
+        /// The wordmark ships as an embedded asset (Textures/logo.png). Drop a replacement at
+        /// Resources/Textures/logo.png and it is picked up instead, without a rebuild.
         /// </summary>
         private Drawable BuildLogo(IRenderer renderer)
         {
-            var logoPath = Path.Combine(
-                System.AppDomain.CurrentDomain.BaseDirectory, "Resources", "Textures", "logo.png");
-
-            var texture = LoadTexture(logoPath, renderer);
+            var texture = LoadAssetTexture("Textures/logo.png", renderer);
 
             if (texture != null)
             {
@@ -496,6 +492,26 @@ namespace mEmEmE_Act.Game
         private void StartLevel(LevelInfo level)
         {
             this.Push(new GameplayScreen(level));
+        }
+
+        /// <summary>
+        /// A texture for one of the game's own assets ("Textures/START.png"), or null when it cannot be
+        /// read. Goes through GameAssets so it works on Android too — those assets are embedded, since
+        /// there is no Resources folder next to the executable on a phone.
+        /// </summary>
+        private static Texture LoadAssetTexture(string relativePath, IRenderer renderer)
+        {
+            if (renderer == null)
+                return null;
+
+            try
+            {
+                return GameAssets.CreateTextureStore(renderer).Get(relativePath);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>Create a texture from a file on disk, or null when it cannot be read.</summary>

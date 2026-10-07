@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+
+    <!-- Required by osu!framework, not optional. Its dependency activator asks NullabilityInfoContext
+         about every BackgroundDependencyLoader parameter, and on Android (like iOS) that API is
+         compiled out by default: IsSupported is false and the game dies during load with
+         "NullabilityInfoContext is not supported in the current application", before drawing a frame.
+         The iOS head carries the same line. -->
+    <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+
+    <!-- Without this the packer emitted android:targetSdkVersion="28", which is what a phone running
+         Android 16 refuses or half-refuses to install. 34 is the highest this workload supports
+         (Microsoft.Android.Ref.34). -->
+    <TargetSdkVersion>34</TargetSdkVersion>
+
+    <ApplicationId>com.strstudio2175.mememeact</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.0.2</ApplicationDisplayVersion>
+  </PropertyGroup>
+
+  <!--
+    Debug builds use Fast Deployment by default: the managed assemblies are NOT put in the APK and are
+    instead pushed to the device by `adb` when deploying. An APK copied to the phone by hand then dies
+    on startup with "No assemblies found in .../files/.__override__". Embedding them makes the APK
+    self-contained, which is what a hand-installed build needs.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
+  <!--
+    Mirrors the iOS head: the platform project only supplies an entry point, everything real lives
+    in mEmEmE_Act.Game. ppy.osu.Framework.Android is version-locked to the same 2025.1021.0 as the
+    core framework and ppy.osu.Framework.iOS, so the Android head cannot drift away from them.
+  -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\mEmEmE_Act.Game\mEmEmE_Act.Game.csproj" />
+    <ProjectReference Include="..\mEmEmE_Act.Resources\mEmEmE_Act.Resources.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2025.1021.0" />
+  </ItemGroup>
+</Project>

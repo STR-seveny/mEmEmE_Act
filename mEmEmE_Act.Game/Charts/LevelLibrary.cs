@@ -44,27 +44,75 @@ namespace mEmEmE_Act.Game.Charts
             AppDomain.CurrentDomain.BaseDirectory, "Resources", "Levels");
 
         /// <summary>
-        /// Every level in the levels folder, read from each package's data.txt.
+        /// Every level: loose files in the levels folder plus the ones bundled into the assembly.
         /// metadata is read straight from the zip (no extraction needed).
         /// </summary>
         public static List<LevelInfo> Scan()
         {
             var result = new List<LevelInfo>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            if (!Directory.Exists(LevelsDirectory))
-                return result;
-
-            foreach (var path in Directory.GetFiles(LevelsDirectory, "*.me4"))
+            // Loose files first, so a level dropped in by the user wins over a bundled one of the same
+            // name. On Android this folder does not exist at all and the loop simply does nothing.
+            if (Directory.Exists(LevelsDirectory))
             {
-                var info = Read(path);
+                foreach (var path in Directory.GetFiles(LevelsDirectory, "*.me4"))
+                    Add(result, seen, path);
+            }
 
-                if (info != null)
-                    result.Add(info);
+            // Levels embedded in mEmEmE_Act.Game.dll. They are the only source on Android, where there
+            // is no levels folder beside the executable — the build output lives inside the app package.
+            foreach (var (path, bytes) in GameAssets.Enumerate("Levels"))
+            {
+                if (!path.EndsWith(".me4", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                Add(result, seen, ExtractBundled(path, bytes));
             }
 
             result.Sort((a, b) => string.Compare(a.DisplayTitle, b.DisplayTitle, StringComparison.OrdinalIgnoreCase));
 
             return result;
+        }
+
+        private static void Add(List<LevelInfo> result, HashSet<string> seen, string path)
+        {
+            if (path == null || !seen.Add(System.IO.Path.GetFileName(path)))
+                return;
+
+            var info = Read(path);
+
+            if (info != null)
+                result.Add(info);
+        }
+
+        /// <summary>
+        /// Writes a bundled level out as a real file so it can go through exactly the same zip-reading
+        /// and extraction path as a loose one. Rewritten only when its size changes, so this is not a
+        /// copy on every launch.
+        /// </summary>
+        private static string ExtractBundled(string relativePath, byte[] bytes)
+        {
+            try
+            {
+                var dir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "mEmEmE_Act", "bundled");
+
+                Directory.CreateDirectory(dir);
+
+                var file = System.IO.Path.Combine(dir, System.IO.Path.GetFileName(relativePath));
+
+                if (!File.Exists(file) || new FileInfo(file).Length != bytes.Length)
+                    File.WriteAllBytes(file, bytes);
+
+                return file;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[levels] 无法写出内置关卡 {relativePath}: {e.Message}");
+                return null;
+            }
         }
 
         /// <summary>

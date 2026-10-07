@@ -277,9 +277,46 @@ dotnet run --project mEmEmE_Act.Desktop/mEmEmE_Act.Desktop.csproj
 或直接运行编译产物：
 `mEmEmE_Act.Desktop/bin/Debug/net8.0/mEmEmE_Act.exe`
 
-**目前只支持 Desktop**（iOS 项目存在但未验证）。
+**平台支持 / Platform support**
 
-*Desktop only for now (an iOS project exists but is untested).*
+| 平台 / Platform | 状态 / Status |
+| --- | --- |
+| **Desktop**（Windows） | ✅ 主力平台 / main platform |
+| **Android** | ✅ 真机验证可运行（Android 16 / arm64）/ runs on device |
+| iOS | 项目存在，未验证 / project exists, untested |
+
+### Android
+
+需要 .NET **8** SDK + `android` workload、**JDK 17**（更高版本工具链不认）、Android SDK：
+
+```bash
+dotnet workload install android
+dotnet build mEmEmE_Act.Android -t:InstallAndroidDependencies -f net8.0-android \
+  -p:AndroidSdkDirectory=<SDK 路径> -p:AcceptAndroidSDKLicenses=True
+```
+
+出包（只打 arm64 并去掉调试符号，体积从 244 MB 降到 90 MB）：
+
+```bash
+dotnet build mEmEmE_Act.Android -f net8.0-android -c Debug \
+  -p:RuntimeIdentifier=android-arm64 \
+  -p:DebugSymbols=false -p:DebugType=none -p:AndroidCopyDebugSymbols=false
+# 产物 mEmEmE_Act.Android/bin/Debug/net8.0-android/android-arm64/*-Signed.apk
+```
+
+**三个必须记住的设置**（改配置时别弄丢，每一条都对应一次"装了但打不开"）：
+
+1. **`<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>`** —— osu!framework 的依赖注入要问 `NullabilityInfoContext` 每个参数的可空性，Android/iOS 默认把这 API 裁掉，缺了它会在加载阶段抛异常、**不弹任何提示直接退出**。
+2. **`<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>`（Debug）** —— Debug 默认走 Fast Deployment，程序集不在 APK 里、靠 `adb` 推送；手动拷贝安装的包会以 `No assemblies found in .../files/.__override__` 自杀。
+3. **`targetSdkVersion` 写在 `AndroidManifest.xml` 的 `<uses-sdk>` 里** —— 写成 MSBuild 属性无效，打包时会被某个库的清单合并成 28，在 Android 16 上连安装都困难。
+
+出问题先看 `Download/mememeact-log.txt`：启动信息和 Error 级日志都会镜像到这里（见 `AndroidLogFile.cs`），因为手机自己没有可读的崩溃日志、游戏自己的日志又在应用私有目录里。
+
+触屏：SDL 把触摸合成为鼠标事件，所以点按等价于桌面上的左键——展开面板、选关卡、tE 判定都走同一条路，`Z` / `X` 在手机上用不到。
+
+*Touch is mapped to mouse by SDL, so tapping behaves like the desktop left button everywhere (menu, song select, `tE`). The `Z` / `X` keys are desktop-only.*
+
+*Android needs the `android` workload, JDK 17 and an Android SDK. Three settings are load-bearing and each corresponds to one "installs but will not open": `NullabilityInfoContextSupport` (osu!framework's DI reads nullability of every loader parameter; without it the game exits silently during load), `EmbedAssembliesIntoApk` (otherwise only adb deploys work), and `targetSdkVersion` in the manifest rather than as an MSBuild property. Startup and error logs are mirrored to `Download/mememeact-log.txt`.*
 
 ### 项目结构 / Project Layout
 

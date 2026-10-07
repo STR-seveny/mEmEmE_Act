@@ -60,15 +60,16 @@ namespace mEmEmE_Act.Game
         {
             this.renderer = renderer;
 
-            var fontPath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "Resources", "Fonts", "SourceHanSansSC-Regular.otf"
-            );
-            if (!File.Exists(fontPath))
-                throw new FileNotFoundException($"字体文件找不到: {fontPath}");
+            // The font is an embedded asset, not a file: on Android there is no Resources folder to
+            // read it from, and this used to throw FileNotFoundException there — which took the whole
+            // game down, because this class is used by the copyright line and the menu.
+            var fontStream = GameAssets.GetStream("Fonts/SourceHanSansSC-Regular.otf");
+
+            if (fontStream == null)
+                throw new FileNotFoundException("字体找不到: Fonts/SourceHanSansSC-Regular.otf");
 
             var collection = new FontCollection();
-            var family = collection.Add(fontPath);
+            var family = collection.Add(fontStream);
             font = family.CreateFont(FontSize);
 
             InternalChild = sprite = new Sprite
