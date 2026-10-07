@@ -21,7 +21,7 @@
 
 ## 当前状态 / Status
 
-**`beta0.0.1`** —— 判定系统完成，游戏本体可玩。
+**`beta0.0.2`** —— 从启动到进关是一条完整流程：主菜单 → 选曲 → 游戏。
 
 | 已完成 / Done | 未实现 / Not yet implemented |
 | --- | --- |
@@ -30,9 +30,12 @@
 | 命中特效（Rx 素材） | `end` 结束流程 |
 | REV / SPT 两项机制 | 结算界面、成绩统计 |
 | 音频时钟同步 | |
-| 谱面解析 | |
+| 谱面解析（`.me3`） | |
+| 主菜单与选曲界面 | |
+| `.me4` 关卡包（谱面 + 音频 + 曲绘 + 元数据） | |
 
-*Judgement system complete and playable. Effects (`effect`), camera movement (`camera`), and the end sequence (`end`) are still stubs.*
+*The flow from launch to gameplay is complete: main menu, song select and `.me4` level packages.
+Effects (`effect`), camera movement (`camera`), and the end sequence (`end`) are still stubs.*
 
 ---
 
@@ -43,6 +46,8 @@
 | 移动鼠标 / Move mouse | 控制接收器左右移动 / Move the receptor |
 | 鼠标左键 / Left mouse button | tE 点击判定 / Judge a `tE` |
 | `Z` / `X` | 同上（键盘替代）/ Same as above |
+| 鼠标左键（主菜单）/ Left click (menu) | 展开面板 / 开始关卡 / 收起面板 · Open, play, collapse |
+| `ESC` | 游戏中返回主菜单 / Back to the main menu |
 
 （`Z` / `X` 会忽略系统按键连发，避免按住不放被当成连续点击。）
 
@@ -180,6 +185,25 @@ bug(24.28,SPT,0,0)        // 24.28 秒时生成 SPT 触发块
 | `id_my_x` / `id_my_y` | 某个对象的当前坐标 |
 | `random(最小/最大)` | 随机数 |
 
+### `.me4` 关卡包 / Level package
+
+`.me4` 是**改了后缀名的 zip**，一个文件装下一个关卡的全部内容：
+
+| 文件 / File | 必需 / Required | 内容 / Contents |
+| --- | --- | --- |
+| `chart.me3` | ✅ | 谱面，语法同上 / The chart, same syntax as above |
+| `music.wav` / `.mp3` / `.ogg` | | 音轨，按这个顺序取第一个存在的 / First one that exists wins |
+| `art.png` | | 曲绘（方形）/ Square cover art |
+| `data.txt` | | 元数据四行：标题 / 艺术家 / 谱师 / 曲绘师 |
+
+放进 `Resources/Levels/`，启动时自动扫描并出现在选曲列表里。
+
+*A `.me4` is a **zip with a renamed extension** holding one whole level: `chart.me3`, optional
+`music.*` and `art.png`, plus `data.txt` with four lines of metadata. Drop it in
+`Resources/Levels/` and it appears in the song list at launch.*
+
+格式细节见 `Resources/Levels/README.md`。
+
 ---
 
 ## 编译运行 / Building & Running
@@ -229,12 +253,17 @@ YourLevel.me4      ← 一个文件装下 谱面 + 音频 + 曲绘 + 元数据
 
 *A `.me4` is a **zip archive with a renamed extension**; see `Resources/Levels/README.md` for the format.*
 
-**没有关卡时游戏会启动，但没有音符**（判定区与接收器仍在）。
+**没有关卡时游戏会正常启动**，选曲列表显示一条提示，无法进入关卡。
 
-*Without a level the game still launches, but no notes appear.*
+*Without any level the game still launches; the song list is simply empty.*
 
-> 旧格式仍然可用：把 `1_1_1.me3` 放 `Resources/Charts/`、`1_1_1.mp3` 放 `Resources/Audio/`。
-> *The legacy layout still works: `1_1_1.me3` in `Resources/Charts/` plus `1_1_1.mp3` in `Resources/Audio/`.*
+> **关卡只在启动时扫描一次** —— 增删 `.me4` 之后需要重启游戏。
+> *Levels are scanned once, at launch — restart the game after adding or removing a `.me4`.*
+>
+> 关卡包会被解包到 `%LOCALAPPDATA%\mEmEmE_Act\cache\`，缓存目录按「文件名 + 时间戳」命名，
+> 所以同名关卡换一份新的会重新解包，旧缓存不会自动清理。
+> *Packages are extracted into `%LOCALAPPDATA%\mEmEmE_Act\cache\`; the cache folder is keyed by
+> file name plus timestamp, so replacing a level re-extracts it and leaves the old cache behind.*
 
 ### 编译 / Build
 
@@ -256,13 +285,19 @@ dotnet run --project mEmEmE_Act.Desktop/mEmEmE_Act.Desktop.csproj
 
 ```
 mEmEmE_Act.Game/
-  Charts/Playfield.cs      判定主循环（子步进推进、反馈、谱面事件调度）
+  MainMenuScreen.cs        主菜单 = 选曲界面（波形 + logo + 可上滑的 START 面板、关卡列表）
+  WaveformDisplay.cs       顶部波形，跟随菜单曲频谱跳动（同时持有菜单曲）
+  GameplayScreen.cs        游戏屏幕：输入、REV / SPT 的位置计算
+  PrepareOverlay.cs        进关前的准备遮罩
+  Recepter.cs              接收器（判定区几何量）
   Note.cs                  音符基类(=dE) / NoteTE / NoteNE，各自实现判定
   BugNote.cs               REV / SPT 触发块
   HitEffect.cs             命中特效
-  Recepoter.cs             接收器（判定区几何量）
-  MainScreen.cs            屏幕、输入、REV / SPT 的位置计算
+  DynamicText.cs           运行时文字渲染（SixLabors）
+  Charts/Playfield.cs      判定主循环（子步进推进、反馈、谱面事件调度）
   Charts/ChartParser.cs    .me3 谱面解析
+  Charts/Me4Package.cs     .me4 关卡包读取与解包
+  Charts/LevelLibrary.cs   扫描 Resources/Levels 里的关卡
 ```
 
 ---
@@ -310,7 +345,9 @@ mEmEmE_Act.Game/
 | 资源 | 是否在仓库中 | 说明 |
 | --- | --- | --- |
 | `Resources/Audio/1_1_1.mp3` | ❌ **不在** | 授权仅限使用，不可公开再分发；需自备 |
-| `Resources/Sound/hit.mp3` | ✅ 在 | 打击音效 |
+| `Resources/Sound/menu.mp3` | ❌ **不在** | 主菜单曲（6 MB）；需自备，缺失时波形回落成静态形状 |
+| `Resources/Sound/hit.mp3` | ✅ 在 | 打击音效（Scratch 无版权音效库混音） |
+| `Resources/Textures/logo.png`、`START.png` | ✅ 在 | 主菜单 logo 与 START 面板素材 |
 | `Resources/Effects/*.png` | ✅ 在 | 命中特效素材（Rx） |
 
 其余音频与图片素材的版权归其各自作者所有，**不适用本项目的 MIT 许可**。
